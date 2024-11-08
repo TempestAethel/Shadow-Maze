@@ -100,6 +100,7 @@
         let startTime = 0;
         let gameTimer = null;
         let movementDisabled = false; // Flag to disable movement after winning
+        let pathHistory = []; // Array to store the trail of the player's path
 
         // Generate the maze using DFS
         function generateMaze() {
@@ -139,6 +140,18 @@
         function drawMaze() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Draw the trail
+            for (let i = 0; i < pathHistory.length; i++) {
+                const { x, y } = pathHistory[i];
+                ctx.beginPath();
+                ctx.rect(x * gridSize, y * gridSize, gridSize, gridSize);
+                ctx.fillStyle = '#607d8b'; // Color for the trail (grayish)
+                ctx.fill();
+                ctx.strokeStyle = '#222';
+                ctx.stroke();
+            }
+
+            // Draw the maze cells
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     const cell = maze[y][x];
@@ -197,6 +210,9 @@
             const newY = playerPos.y + direction.y;
 
             if (maze[newY] && maze[newY][newX] !== WALL) {
+                // Add the current position to the path history (trail)
+                pathHistory.push({ x: playerPos.x, y: playerPos.y });
+
                 maze[playerPos.y][playerPos.x] = PATH;
                 playerPos = { x: newX, y: newY };
                 maze[playerPos.y][playerPos.x] = PLAYER;
@@ -210,6 +226,7 @@
 
                     setTimeout(() => {
                         playerPos = { x: 1, y: 1 }; // Reset player position
+                        pathHistory = []; // Clear the trail
                         generateMaze(); // Regenerate maze
                         maze[playerPos.y][playerPos.x] = PLAYER; // Place player at start
                         drawMaze(); // Redraw the maze
