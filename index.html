@@ -1,8 +1,9 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Maze Game</title>
+    <title>Shadow Maze</title>
     <style>
         body {
             background-color: #121212;
@@ -12,28 +13,70 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 36px;
+            color: #ff4d4d;
+        }
+        .instructions {
+            font-size: 14px;
+            text-align: center;
+            color: #fff;
+            margin-top: 10px;
         }
         canvas {
             border: 2px solid #fff;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
-        .instructions {
-            position: absolute;
-            bottom: 20px;
-            font-size: 14px;
-            text-align: center;
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
             color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 17px;
+        }
+        .toast.show {
+            visibility: visible;
+            animation: fadeInOut 3s;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>Shadow Maze</h1>
+        <p class="instructions">Use arrow keys or WASD to navigate the maze</p>
+        <p id="timer" style="font-size: 18px;">Time: 00:00</p>
+    </div>
     <canvas id="mazeCanvas" width="500" height="500"></canvas>
-    <div class="instructions">Use arrow keys or WASD to navigate the maze</div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">You Win! 🎉</div>
 
     <script>
         const canvas = document.getElementById('mazeCanvas');
         const ctx = canvas.getContext('2d');
+        const timerDisplay = document.getElementById('timer');
+        const toast = document.getElementById('toast');
 
         const gridSize = 20;
         const cols = canvas.width / gridSize;
@@ -54,6 +97,9 @@
         let maze = [];
         let playerPos = { x: 1, y: 1 };
         let exitPos = { x: cols - 2, y: rows - 2 };
+        let gameStarted = false;
+        let startTime = 0;
+        let gameTimer = null;
 
         // Generate the maze using DFS
         function generateMaze() {
@@ -119,6 +165,26 @@
             }
         }
 
+        // Start the game timer
+        function startGameTimer() {
+            gameStarted = true;
+            startTime = Date.now();
+            gameTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const seconds = String(elapsed % 60).padStart(2, '0');
+                timerDisplay.textContent = `Time: ${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        // Show toast message
+        function showToast() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
         // Function to update player's position
         function movePlayer(direction) {
             const newX = playerPos.x + direction.x;
@@ -137,15 +203,24 @@
 
                 // Check if player reached the exit
                 if (playerPos.x === exitPos.x && playerPos.y === exitPos.y) {
-                    setTimeout(() => alert('You win!'), 100);
-                    generateMaze(); // Regenerate the maze
-                    drawMaze(); // Redraw the maze
+                    clearInterval(gameTimer); // Stop the timer
+                    showToast(); // Show toast notification
+                    setTimeout(() => {
+                        generateMaze(); // Regenerate the maze
+                        maze[playerPos.y][playerPos.x] = PLAYER; // Set player to initial position
+                        drawMaze(); // Redraw the maze
+                        startGameTimer(); // Restart the timer
+                    }, 3000); // Wait 3 seconds before restarting
                 }
             }
         }
 
         // Listen to both arrow keys and WASD keys
         document.addEventListener('keydown', (e) => {
+            if (!gameStarted) {
+                startGameTimer();
+            }
+
             switch (e.key) {
                 case 'ArrowUp':
                 case 'w': // 'W' key to move up
