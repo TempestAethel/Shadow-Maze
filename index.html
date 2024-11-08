@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Maze Game</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mazeCanvas" width="500" height="500"></canvas>
+    <div class="instructions">Use arrow keys to navigate the maze</div>
+
+    <script>
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 20;
+        const cols = canvas.width / gridSize;
+        const rows = canvas.height / gridSize;
+
+        const DIRECTIONS = [
+            { x: 0, y: -1 }, // Up
+            { x: 1, y: 0 },  // Right
+            { x: 0, y: 1 },  // Down
+            { x: -1, y: 0 }, // Left
+        ];
+
+        const WALL = 1;
+        const PATH = 0;
+        const PLAYER = 2;
+        const EXIT = 3;
+
+        let maze = [];
+        let playerPos = { x: 1, y: 1 };
+        let exitPos = { x: cols - 2, y: rows - 2 };
+
+        // Generate the maze using DFS
+        function generateMaze() {
+            // Initialize maze with walls
+            maze = Array.from({ length: rows }, () => Array(cols).fill(WALL));
+
+            // DFS stack
+            const stack = [{ x: 1, y: 1 }];
+            maze[1][1] = PATH;
+
+            while (stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const { x, y } = current;
+                const directions = DIRECTIONS.filter(d => {
+                    const nx = x + d.x * 2;
+                    const ny = y + d.y * 2;
+                    return nx >= 1 && ny >= 1 && nx < cols - 1 && ny < rows - 1 && maze[ny][nx] === WALL;
+                });
+
+                if (directions.length > 0) {
+                    const dir = directions[Math.floor(Math.random() * directions.length)];
+                    const nx = x + dir.x * 2;
+                    const ny = y + dir.y * 2;
+
+                    // Knock down walls
+                    maze[ny][nx] = PATH;
+                    maze[y + dir.y][x + dir.x] = PATH;
+
+                    stack.push({ x: nx, y: ny });
+                } else {
+                    stack.pop();
+                }
+            }
+
+            // Set the exit
+            maze[exitPos.y][exitPos.x] = EXIT;
+        }
+
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const cell = maze[y][x];
+                    ctx.beginPath();
+                    ctx.rect(x * gridSize, y * gridSize, gridSize, gridSize);
+
+                    if (cell === WALL) {
+                        ctx.fillStyle = '#333';
+                    } else if (cell === PATH) {
+                        ctx.fillStyle = '#1d1d1d';
+                    } else if (cell === PLAYER) {
+                        ctx.fillStyle = '#ff4d4d'; // Player color
+                    } else if (cell === EXIT) {
+                        ctx.fillStyle = '#4dff4d'; // Exit color
+                    }
+
+                    ctx.fill();
+                    ctx.strokeStyle = '#222';
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function movePlayer(direction) {
+            const newX = playerPos.x + direction.x;
+            const newY = playerPos.y + direction.y;
+
+            // Check if the new position is a valid path
+            if (maze[newY] && maze[newY][newX] !== WALL) {
+                playerPos = { x: newX, y: newY };
+                if (playerPos.x === exitPos.x && playerPos.y === exitPos.y) {
+                    setTimeout(() => alert('You win!'), 100);
+                }
+            }
+        }
+
+        // Listen to arrow keys
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp': movePlayer(DIRECTIONS[0]); break;
+                case 'ArrowRight': movePlayer(DIRECTIONS[1]); break;
+                case 'ArrowDown': movePlayer(DIRECTIONS[2]); break;
+                case 'ArrowLeft': movePlayer(DIRECTIONS[3]); break;
+            }
+            drawMaze();
+        });
+
+        // Initialize the game
+        function startGame() {
+            generateMaze();
+            drawMaze();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
