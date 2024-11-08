@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -127,11 +126,20 @@
 
             // Check if the new position is within the bounds and is a valid path
             if (maze[newY] && maze[newY][newX] !== WALL) {
+                // Remove player from the previous position
+                maze[playerPos.y][playerPos.x] = PATH;
+
+                // Update player position
                 playerPos = { x: newX, y: newY };
+
+                // Place player at the new position
+                maze[playerPos.y][playerPos.x] = PLAYER;
+
+                // Check if player reached the exit
                 if (playerPos.x === exitPos.x && playerPos.y === exitPos.y) {
                     setTimeout(() => alert('You win!'), 100);
-                    generateMaze(); // Generate new maze
-                    drawMaze(); // Redraw new maze
+                    generateMaze(); // Regenerate the maze
+                    drawMaze(); // Redraw the maze
                 }
             }
         }
@@ -156,12 +164,13 @@
                     movePlayer(DIRECTIONS[3]);
                     break;
             }
-            drawMaze();
+            drawMaze(); // Redraw the maze after each movement
         });
 
         // Initialize the game
         function startGame() {
             generateMaze();
+            maze[playerPos.y][playerPos.x] = PLAYER; // Set the initial player position
             drawMaze();
         }
 
