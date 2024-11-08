@@ -22,7 +22,7 @@
         }
         .header h1 {
             font-size: 36px;
-            color: #ff4d4d;
+            color: #00bcd4; /* Cyan color */
         }
         .instructions {
             font-size: 14px;
@@ -70,7 +70,7 @@
     <canvas id="mazeCanvas" width="500" height="500"></canvas>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast">You Win! 🎉</div>
+    <div id="toast" class="toast"></div>
 
     <script>
         const canvas = document.getElementById('mazeCanvas');
@@ -153,9 +153,9 @@
                     } else if (cell === PATH) {
                         ctx.fillStyle = '#1d1d1d';
                     } else if (cell === PLAYER) {
-                        ctx.fillStyle = '#ff4d4d'; // Player color
+                        ctx.fillStyle = '#00bcd4'; // Cyan player color
                     } else if (cell === EXIT) {
-                        ctx.fillStyle = '#4dff4d'; // Exit color
+                        ctx.fillStyle = '#009688'; // Teal exit color
                     }
 
                     ctx.fill();
@@ -179,10 +179,17 @@
 
         // Show toast message
         function showToast() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const seconds = String(elapsed % 60).padStart(2, '0');
+            const winTime = `${minutes}:${seconds}`;
+
+            toast.textContent = `You Win! Time: ${winTime}`;
             toast.classList.add('show');
+
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 3000);
+            }, 3000); // Toast shows for 3 seconds
         }
 
         // Function to update player's position
@@ -206,11 +213,11 @@
                     clearInterval(gameTimer); // Stop the timer
                     showToast(); // Show toast notification
                     setTimeout(() => {
-                        generateMaze(); // Regenerate the maze
+                        generateMaze(); // Regenerate the maze with a delay
                         maze[playerPos.y][playerPos.x] = PLAYER; // Set player to initial position
                         drawMaze(); // Redraw the maze
                         startGameTimer(); // Restart the timer
-                    }, 3000); // Wait 3 seconds before restarting
+                    }, 2000); // Delay for 2 seconds before restarting
                 }
             }
         }
