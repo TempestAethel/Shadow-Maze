@@ -30,7 +30,7 @@
 </head>
 <body>
     <canvas id="mazeCanvas" width="500" height="500"></canvas>
-    <div class="instructions">Use arrow keys to navigate the maze</div>
+    <div class="instructions">Use arrow keys or WASD to navigate the maze</div>
 
     <script>
         const canvas = document.getElementById('mazeCanvas');
@@ -93,6 +93,7 @@
             maze[exitPos.y][exitPos.x] = EXIT;
         }
 
+        // Draw the maze and player
         function drawMaze() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -119,26 +120,41 @@
             }
         }
 
+        // Function to update player's position
         function movePlayer(direction) {
             const newX = playerPos.x + direction.x;
             const newY = playerPos.y + direction.y;
 
-            // Check if the new position is a valid path
+            // Check if the new position is within the bounds and is a valid path
             if (maze[newY] && maze[newY][newX] !== WALL) {
                 playerPos = { x: newX, y: newY };
                 if (playerPos.x === exitPos.x && playerPos.y === exitPos.y) {
                     setTimeout(() => alert('You win!'), 100);
+                    generateMaze(); // Generate new maze
+                    drawMaze(); // Redraw new maze
                 }
             }
         }
 
-        // Listen to arrow keys
+        // Listen to both arrow keys and WASD keys
         document.addEventListener('keydown', (e) => {
             switch (e.key) {
-                case 'ArrowUp': movePlayer(DIRECTIONS[0]); break;
-                case 'ArrowRight': movePlayer(DIRECTIONS[1]); break;
-                case 'ArrowDown': movePlayer(DIRECTIONS[2]); break;
-                case 'ArrowLeft': movePlayer(DIRECTIONS[3]); break;
+                case 'ArrowUp':
+                case 'w': // 'W' key to move up
+                    movePlayer(DIRECTIONS[0]);
+                    break;
+                case 'ArrowRight':
+                case 'd': // 'D' key to move right
+                    movePlayer(DIRECTIONS[1]);
+                    break;
+                case 'ArrowDown':
+                case 's': // 'S' key to move down
+                    movePlayer(DIRECTIONS[2]);
+                    break;
+                case 'ArrowLeft':
+                case 'a': // 'A' key to move left
+                    movePlayer(DIRECTIONS[3]);
+                    break;
             }
             drawMaze();
         });
